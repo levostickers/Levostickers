@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>levostickers - متجر الملصقات</title>
+
 <style>
 body{font-family:Arial;margin:0}
 header{background:#333;color:#fff;text-align:center;padding:1rem;position:relative}
@@ -23,42 +24,9 @@ button{padding:6px 12px;border:none;cursor:pointer;color:#fff;background:#333}
 #checkout-modal>div{background:#fff;padding:20px;width:90%;max-width:500px}
 #admin-section{display:none;padding:20px}
 .admin-sticker{display:flex;justify-content:space-between;align-items:center;box-shadow:0 0 10px #ccc;margin:10px 0;padding:10px}
-
-/* أنيميشن الاحتفال */
-#celebration {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    color: #fff;
-    font-size: 2rem;
-    text-align: center;
-    animation: fadeIn 1s ease-in-out;
-}
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-.confetti {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    background: #ff0;
-    animation: fall 3s linear infinite;
-}
-.confetti:nth-child(odd) { background: #f00; }
-.confetti:nth-child(3n) { background: #0f0; }
-@keyframes fall {
-    to { transform: translateY(100vh) rotate(360deg); }
-}
 </style>
 </head>
+
 <body>
 
 <header>
@@ -68,25 +36,8 @@ button{padding:6px 12px;border:none;cursor:pointer;color:#fff;background:#333}
 
 <nav>
 <a href="#products">المنتجات</a>
-<a href="#contact">اتصل بنا</a>
 <a href="#" id="admin-link">الإدارة</a>
 </nav>
-
-<!-- عنصر الأنيميشن الاحتفالي -->
-<div id="celebration">
-    <div>🎉 افتتاح المتجر! 🎉</div>
-    <!-- أوراق الاحتفال -->
-    <div class="confetti" style="left: 10%; animation-delay: 0s;"></div>
-    <div class="confetti" style="left: 20%; animation-delay: 0.5s;"></div>
-    <div class="confetti" style="left: 30%; animation-delay: 1s;"></div>
-    <div class="confetti" style="left: 40%; animation-delay: 1.5s;"></div>
-    <div class="confetti" style="left: 50%; animation-delay: 2s;"></div>
-    <div class="confetti" style="left: 60%; animation-delay: 2.5s;"></div>
-    <div class="confetti" style="left: 70%; animation-delay: 3s;"></div>
-    <div class="confetti" style="left: 80%; animation-delay: 3.5s;"></div>
-    <div class="confetti" style="left: 90%; animation-delay: 4s;"></div>
-    <button onclick="closeCelebration()" style="margin-top: 20px; padding: 10px; background: #28a745; color: #fff; border: none; cursor: pointer;">إغلاق</button>
-</div>
 
 <div id="cart">
 <button class="close-btn" onclick="toggleCart()">×</button>
@@ -94,19 +45,6 @@ button{padding:6px 12px;border:none;cursor:pointer;color:#fff;background:#333}
 <div id="cart-items"></div>
 <p>الإجمالي: <span id="cart-total">0</span> جنيه</p>
 <button onclick="openCheckout()">اطلب الآن</button>
-</div>
-
-<div id="checkout-modal">
-<div>
-<h3>إتمام الطلب</h3>
-<form id="checkout-form">
-<input type="text" id="buyer-name" placeholder="الاسم الكامل" required>
-<input type="tel" id="buyer-phone" placeholder="رقم الهاتف" required>
-<textarea id="buyer-notes" placeholder="ملاحظات إضافية (اختياري)"></textarea>
-<button type="submit">تأكيد الطلب عبر WhatsApp</button>
-<button type="button" onclick="closeCheckout()">إلغاء</button>
-</form>
-</div>
 </div>
 
 <section id="products">
@@ -128,19 +66,28 @@ button{padding:6px 12px;border:none;cursor:pointer;color:#fff;background:#333}
 </section>
 
 <script>
+/* 🔥 المنتجات الثابتة (تظهر لكل الناس) */
+const defaultStickers = [
+  {
+    image: "https://kyleeandco.nz/cdn/shop/products/image_8ce74649-2379-499c-9e90-67b9c2ef37ba.png?v=1664252982&width=1946",
+    name: "poop 💩",
+    price: 10,
+    quantity: 10
+  }
+];
+
+const ADMIN_PASSWORD = "admin123";
+
+let stickers = JSON.parse(localStorage.getItem("stickers")) || defaultStickers;
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
 const cartDiv=document.getElementById("cart");
 const cartCount=document.getElementById("cart-count");
 const cartItems=document.getElementById("cart-items");
 const cartTotal=document.getElementById("cart-total");
-const checkoutForm=document.getElementById("checkout-form");
 const productList=document.getElementById("product-list");
 const adminSection=document.getElementById("admin-section");
-const adminLink=document.getElementById("admin-link");
 const adminStickerList=document.getElementById("admin-sticker-list");
-
-const ADMIN_PASSWORD="admin123";
-let stickers=JSON.parse(localStorage.getItem("stickers"))||[];
-let cart=JSON.parse(localStorage.getItem("cart"))||[];
 
 function toggleCart(){
 cartDiv.style.display=cartDiv.style.display==="block"?"none":"block";
@@ -151,7 +98,8 @@ productList.innerHTML="";
 stickers.forEach((s,i)=>{
 const div=document.createElement("div");
 div.className="product"+(s.quantity<=0?" out-of-stock":"");
-div.innerHTML=`<img src="${s.image}" width="100%">
+div.innerHTML=`
+<img src="${s.image}" width="100%">
 <h3>${s.name}</h3>
 <p>${s.price} جنيه</p>
 <p>الكمية: ${s.quantity}</p>
@@ -165,7 +113,6 @@ if(stickers[i].quantity<=0)return;
 cart.push({index:i,name:stickers[i].name,price:stickers[i].price});
 stickers[i].quantity--;
 save();
-alert("تم إضافة الملصق للسلة");
 }
 
 function removeFromCart(i){
@@ -187,61 +134,34 @@ cartItems.innerHTML="";
 let total=0;
 cart.forEach((c,i)=>{
 total+=+c.price;
-cartItems.innerHTML+=`<p>${c.name} - ${c.price} <button class="remove-btn" onclick="removeFromCart(${i})">×</button></p>`;
+cartItems.innerHTML+=`${c.name} - ${c.price} <button class="remove-btn" onclick="removeFromCart(${i})">×</button><br>`;
 });
 cartTotal.textContent=total;
 cartCount.textContent=cart.length;
 }
 
 function openCheckout(){
-if(cart.length===0){alert("السلة فارغة!");return;}
-document.getElementById("checkout-modal").style.display="flex";
+if(cart.length===0){alert("السلة فاضية");return;}
+alert("اطلب عبر واتساب (جاهز)");
 }
 
-function closeCheckout(){
-document.getElementById("checkout-modal").style.display="none";
-}
-
-// طلب عبر WhatsApp
-checkoutForm.addEventListener("submit",function(e){
-e.preventDefault();
-if(cart.length===0){alert("السلة فارغة!");return;}
-let name=document.getElementById("buyer-name").value.trim();
-let phone=document.getElementById("buyer-phone").value.trim();
-let notes=document.getElementById("buyer-notes").value.trim();
-let total=cart.reduce((sum,item)=>sum+Number(item.price),0);
-let orderDetails=cart.map(item=>`${item.name} - ${item.price} جنيه`).join("\n");
-
-// رقم WhatsApp المستلم
-let whatsappNumber="201036903621"; // حط رقمك هنا بدون + أو 00
-let message=`مرحباً، لدي طلب من levostickers:\nالاسم: ${name}\nالهاتف: ${phone}\nالملاحظات: ${notes}\nالطلبات:\n${orderDetails}\nالإجمالي: ${total} جنيه`;
-let url=`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-window.open(url,"_blank");
-
-// مسح السلة بعد الإرسال
-cart=[];
-save();
-closeCheckout();
-checkoutForm.reset();
-});
-
-// الإدارة
-adminLink.addEventListener("click",e=>{
-e.preventDefault();
+document.getElementById("admin-link").onclick=function(){
 let pass=prompt("كلمة مرور الإدارة:");
 if(pass===ADMIN_PASSWORD){
 adminSection.style.display="block";
-window.scrollTo(0,adminSection.offsetTop);
 loadAdminStickers();
-}else alert("كلمة مرور خاطئة!");
-});
+}else alert("كلمة مرور غلط");
+};
 
 function loadAdminStickers(){
 adminStickerList.innerHTML="";
 stickers.forEach((s,i)=>{
-adminStickerList.innerHTML+=`<div class="admin-sticker"><img src="${s.image}" width="80">
+adminStickerList.innerHTML+=`
+<div class="admin-sticker">
+<img src="${s.image}" width="60">
 <div>${s.name}<br>${s.price}ج | ${s.quantity}</div>
-<button class="delete-btn" onclick="deleteSticker(${i})">حذف</button></div>`;
+<button class="delete-btn" onclick="deleteSticker(${i})">حذف</button>
+</div>`;
 });
 }
 
@@ -250,39 +170,24 @@ stickers.splice(i,1);
 save();
 }
 
-document.getElementById("sticker-form").addEventListener("submit",e=>{
+document.getElementById("sticker-form").onsubmit=function(e){
 e.preventDefault();
-let pass=document.getElementById("admin-password").value;
-if(pass!==ADMIN_PASSWORD){alert("كلمة مرور خاطئة!");return;}
+if(document.getElementById("admin-password").value!==ADMIN_PASSWORD){
+alert("كلمة مرور غلط");return;
+}
 stickers.push({
-image:document.getElementById("image-url").value,
-name:document.getElementById("sticker-name").value,
-price:document.getElementById("sticker-price").value,
-quantity:Number(document.getElementById("sticker-quantity").value)
+image:image-url.value,
+name:sticker-name.value,
+price:sticker-price.value,
+quantity:Number(sticker-quantity.value)
 });
 save();
-e.target.reset();
-alert("تم إضافة الملصق!");
-});
+this.reset();
+};
 
-// وظيفة لعرض الأنيميشن
-function showCelebration() {
-    document.getElementById("celebration").style.display = "flex";
-}
-
-// وظيفة لإغلاق الأنيميشن
-function closeCelebration() {
-    document.getElementById("celebration").style.display = "none";
-}
-
-// تحميل أولي
 loadStickers();
 updateCart();
-
-// عرض الأنيميشن عند تحميل الصفحة
-window.onload = function() {
-    showCelebration();
-};
 </script>
+
 </body>
 </html>
