@@ -22,6 +22,7 @@ button{padding:6px 12px;border:none;cursor:pointer;color:#fff;background:#333}
 .close-btn{background:#666;position:absolute;top:10px;left:10px}
 #checkout-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);justify-content:center;align-items:center}
 #checkout-modal>div{background:#fff;padding:20px;width:90%;max-width:500px}
+#checkout-modal input,#checkout-modal textarea{width:100%;margin:5px 0;padding:8px}
 #admin-section{display:none;padding:20px}
 .admin-sticker{display:flex;justify-content:space-between;align-items:center;box-shadow:0 0 10px #ccc;margin:10px 0;padding:10px}
 </style>
@@ -52,6 +53,18 @@ button{padding:6px 12px;border:none;cursor:pointer;color:#fff;background:#333}
 <div id="product-list"></div>
 </section>
 
+<!-- نافذة إتمام الطلب -->
+<div id="checkout-modal">
+  <div>
+    <h3>إتمام الطلب</h3>
+    <input id="customer-name" placeholder="الاسم كامل" required>
+    <input id="customer-phone" placeholder="رقم الموبايل" required>
+    <textarea id="customer-note" placeholder="ملاحظة (اختياري)"></textarea>
+    <button onclick="sendOrder()">إرسال الطلب</button>
+    <button class="remove-btn" onclick="closeCheckout()">إلغاء</button>
+  </div>
+</div>
+
 <section id="admin-section">
 <h2>لوحة الإدارة</h2>
 <form id="sticker-form">
@@ -66,20 +79,14 @@ button{padding:6px 12px;border:none;cursor:pointer;color:#fff;background:#333}
 </section>
 
 <script>
-/* 🔥 المنتجات الثابتة (تظهر لكل الناس) */
-const defaultStickers = [
-  {
-    image: "https://kyleeandco.nz/cdn/shop/products/image_8ce74649-2379-499c-9e90-67b9c2ef37ba.png?v=1664252982&width=1946",
-    name: "poop 💩",
-    price: 10,
-    quantity: 10
-  }
+const defaultStickers=[
+{image:"https://kyleeandco.nz/cdn/shop/products/image_8ce74649-2379-499c-9e90-67b9c2ef37ba.png?v=1664252982&width=1946",name:"poop 💩",price:10,quantity:10}
 ];
 
-const ADMIN_PASSWORD = "admin123";
+const ADMIN_PASSWORD="admin123";
 
-let stickers = JSON.parse(localStorage.getItem("stickers")) || defaultStickers;
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let stickers=JSON.parse(localStorage.getItem("stickers"))||defaultStickers;
+let cart=JSON.parse(localStorage.getItem("cart"))||[];
 
 const cartDiv=document.getElementById("cart");
 const cartCount=document.getElementById("cart-count");
@@ -88,6 +95,7 @@ const cartTotal=document.getElementById("cart-total");
 const productList=document.getElementById("product-list");
 const adminSection=document.getElementById("admin-section");
 const adminStickerList=document.getElementById("admin-sticker-list");
+const checkoutModal=document.getElementById("checkout-modal");
 
 function toggleCart(){
 cartDiv.style.display=cartDiv.style.display==="block"?"none":"block";
@@ -142,7 +150,32 @@ cartCount.textContent=cart.length;
 
 function openCheckout(){
 if(cart.length===0){alert("السلة فاضية");return;}
-alert("اطلب عبر واتساب (جاهز)");
+checkoutModal.style.display="flex";
+}
+
+function closeCheckout(){
+checkoutModal.style.display="none";
+}
+
+function sendOrder(){
+const name=document.getElementById("customer-name").value;
+const phone=document.getElementById("customer-phone").value;
+const note=document.getElementById("customer-note").value;
+
+if(!name||!phone){alert("من فضلك اكتب الاسم ورقم الموبايل");return;}
+
+let order="طلب جديد:%0A";
+cart.forEach(c=>order+=`- ${c.name} (${c.price} جنيه)%0A`);
+order+=`%0Aالإجمالي: ${cartTotal.textContent} جنيه`;
+order+=`%0Aالاسم: ${name}`;
+order+=`%0Aالموبايل: ${phone}`;
+if(note)order+=`%0Aملاحظة: ${note}`;
+
+window.open(`https://wa.me/201000000000?text=${order}`,"_blank");
+
+cart=[];
+save();
+closeCheckout();
 }
 
 document.getElementById("admin-link").onclick=function(){
